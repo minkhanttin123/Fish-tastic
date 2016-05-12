@@ -1,0 +1,73 @@
+#nav {
+	margin-top: -60px;
+	font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", "DejaVu Sans", Verdana, sans-serif;
+	background-color: #735D41;
+
+}
+#aboutusnav:hover {
+	font-size: 150%;
+	
+}
+#productnav:hover {font-size: 150%
+}
+#onlineform:hover {
+	font-size: 150%;
+	
+}
+#eventsnav:hover {
+	font-size: 150%;
+	
+}
+#servicenav:hover {
+	font-size: 150%;
+	
+}
+#FAQnav:hover {
+	font-size: 150%;
+	
+}
+#body {
+	color: #FFFFFF;
+	text-align: left;
+	background-repeat: no-repeat;
+	background-size: 100% 100%;
+	background-color: #D1C5B7;
+	
+}
+#cover {
+	margin-top: -20px;
+	width: 100%;
+}
+#EdgeID {
+	height: 500px;
+	width: 100%;
+	color: #000000;
+	margin-top: -15px;
+	/* [disabled]-webkit-box-shadow: 4px 4px 10px #016FC8; */
+	/* [disabled]box-shadow: 4px 4px 10px #016FC8; */
+}
+#title {
+	text-align: center;
+	font-size: 60px;
+	letter-spacing: 7px;
+	font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", "DejaVu Sans", Verdana, sans-serif;
+	margin-top: -300px;
+	color: #000000;
+	clear: none;
+	
+}
+#footer {
+	text-align: center;
+	letter-spacing: 2px;
+	background-color: #063E53;
+	margin-top: 20%;
+	width: 100%;
+	font-size: 19px;
+	
+}
+#fishtasticnav {
+	text-align: left;
+
+
+
+}
