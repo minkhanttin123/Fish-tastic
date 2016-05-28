@@ -1,0 +1,481 @@
+<!doctype html>
+<html><!-- InstanceBegin template="Templates/Templates/Template.dwt" codeOutsideHTMLIsLocked="false" -->
+<head>
+<meta charset="utf-8">
+<!-- InstanceBeginEditable name="doctitle" -->
+<title>Our Online Order Form</title>
+<!-- InstanceEndEditable -->
+<link href="fishstyle.css" rel="stylesheet" type="text/css">
+<!-- InstanceBeginEditable name="head" -->
+<!-- InstanceEndEditable -->
+</head><br>
+
+
+<body id="body">
+<!-- InstanceBeginEditable name="EditRegion1" -->
+<script type="text/javascript" src="js/jquery-1.11.3.js">
+</script>
+<script type="text/javascript">
+// UTILITY FUNCTIONS 
+
+function IsNumeric(n) {
+    return !isNaN(n);
+} 
+
+function CleanNumber(value) {
+
+    // Assumes string input, removes all commas, dollar signs, and spaces      
+    newValue = value.replace(",","");
+    newValue = newValue.replace("$","");
+    newValue = newValue.replace(/ /g,'');
+    return newValue;
+    
+}
+
+function CommaFormatted(amount) {
+    
+	var delimiter = ","; 
+	var i = parseInt(amount);
+	
+	if(isNaN(i)) { return ''; }
+	
+	i = Math.abs(i);
+	
+	var minus = '';
+	if (i < 0) { minus = '-'; }
+	
+	var n = new String(i);
+	var a = [];
+	
+	while(n.length > 3)
+	{
+		var nn = n.substr(n.length-3);
+		a.unshift(nn);
+		n = n.substr(0,n.length-3);
+	}
+	
+	if (n.length > 0) { a.unshift(n); }
+	
+	n = a.join(delimiter);
+	
+	amount = "$" + minus + n;
+	
+	return amount;
+	
+}
+
+
+// ORDER FORM UTILITY FUNCTIONS
+
+function applyName(klass, numPallets) {
+
+    var toAdd = $("td." + klass).text();
+    
+    var actualClass = $("td." + klass).attr("rel");
+    
+    $("input." + actualClass).attr("value", numPallets + " pallets");
+    
+}
+
+function removeName(klass) {
+    
+    var actualClass = $("td." + klass).attr("rel");
+    
+    $("input." + actualClass).attr("value", "");
+    
+}
+
+function calcTotalPallets() {
+
+    var totalPallets = 0;
+
+    $(".num-pallets-input").each(function() {
+    
+        var thisValue = $(this).val();
+    
+        if ( (IsNumeric(thisValue)) && (thisValue != '') && (thisValue > 0)) {
+            totalPallets += parseInt(thisValue);
+        };
+    
+    });
+    
+    $("#total-pallets-input").val(totalPallets);
+
+}
+
+function calcOrderTotal() {
+    
+    var OrderTotal = 0;
+
+    $(".row-total-input").each(function() {
+    
+        var valString = $(this).val() || 0;
+        
+        OrderTotal += parseInt(valString);
+                    
+    });
+        
+    $("#order-total").val(CommaFormatted(OrderTotal));
+
+}
+
+// DOM READY
+$(function() {
+
+    var inc = 1;
+
+    $(".product-title").each(function() {
+        
+        $(this).addClass("prod-" + inc).attr("rel", "prod-" + inc);
+    
+        var prodTitle = $(this).text();
+                
+        $("#foxycart-order-form").append("<input type='hidden' name='" + prodTitle + "' value='' class='prod-" + inc + "' />");
+        
+        inc++;
+    
+    });
+    
+    // Reset form on page load, optional
+    $("#fc-price").val("$0");
+    $("#order-total").val("$0");
+    $("#total-pallets-input").val("0");
+    
+    // "The Math" is performed pretty much whenever anything happens in the quanity inputs
+    $('.num-pallets-input').bind("focus blur change keyup", function(){
+    
+        // Caching the selector for efficiency 
+        var $el = $(this);
+    
+        // Grab the new quantity the user entered
+        var numPallets = CleanNumber($el.val());
+                
+        // Find the pricing
+        var multiplier = $el
+            .parent().parent()
+            .find("td.price-per-pallet span")
+            .text();
+        
+        // If the quantity is empty, reset everything back to empty
+        if ( (numPallets === '') ) {
+        
+            $el
+                .removeClass("warning")
+                .parent().parent()
+                .find("td.row-total input")
+                .val("");
+                
+            var titleClass = $el.parent().parent().find("td.product-title").attr("rel");
+            
+            removeName(titleClass);
+        
+        // If the quantity is valid, calculate the row total
+        } else if ( (IsNumeric(numPallets)) && (numPallets !== '') && (numPallets >= 0) ) {
+            
+            var rowTotal = numPallets * multiplier;
+            
+            $el
+                .removeClass("warning")
+                .parent().parent()
+                .find("td.row-total input")
+                .val(rowTotal);
+                
+            var titleClass = $el.parent().parent().find("td.product-title").attr("rel");
+                    
+            applyName(titleClass, numPallets);
+        
+        // If the quantity is invalid, let the user know with UI change                                    
+        } else {
+        
+            $el
+                .addClass("warning")
+                .parent().parent()
+                .find("td.row-total input")
+                .val("");
+            
+            var titleClass = $el.parent().parent().find("td.product-title").attr("rel");
+            
+            removeName(titleClass);
+                                          
+        };
+        
+        // Calcuate the overal totals
+        calcOrderTotal();
+        calcTotalPallets();
+    
+    });
+
+});
+</script>
+<script type="text/javascript">
+function MM_validateForm() { //v4.0
+  if (document.getElementById){
+    var i,p,q,nm,test,num,min,max,errors='',args=MM_validateForm.arguments;
+    for (i=0; i<(args.length-2); i+=3) { test=args[i+2]; val=document.getElementById(args[i]);
+      if (val) { nm=val.name; if ((val=val.value)!="") {
+        if (test.indexOf('isEmail')!=-1) { p=val.indexOf('@');
+          if (p<1 || p==(val.length-1)) errors+='- '+nm+' must contain an e-mail address.\n';
+        } else if (test!='R') { num = parseFloat(val);
+          if (isNaN(val)) errors+='- '+nm+' must contain a number.\n';
+          if (test.indexOf('inRange') != -1) { p=test.indexOf(':');
+            min=test.substring(8,p); max=test.substring(p+1);
+            if (num<min || max<num) errors+='- '+nm+' must contain a number between '+min+' and '+max+'.\n';
+      } } } else if (test.charAt(0) == 'R') errors += ' '+nm+' is required.\n'; }
+    } if (errors) alert('The following error(s) occurred:\n'+errors);
+    document.MM_returnValue = (errors == '');
+} }
+</script>
+<table width="100%" border="0" cellpadding="20" id="navbar1">
+  <tbody>
+    <tr>
+      <th width="8%" height="60" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><img src="Images/4c794ec5-7fe2-464c-8465-ec73dac2e02d.png" alt="" width="364" height="228" id="logo"/></th>
+      <th width="16%" id="fishtasticnav" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><a href="Index.html" id="changehyperlinkcolorC">Fish-tastic</a></th>
+      <th width="23%" scope="="col">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</th>
+      <th width="10%" id="aboutusnav" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><a href="AboutUs.html" id="changehyperlinkcolorA">About Us</a></th>
+      <th width="9%" id="productnav" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><a href="ProductFish.html" id="changehyperlinkcolorB">Product</a></th>
+      <th width="12%" id="onlineform" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><a href="OnlineOrderForm.html" id="changehyperlinkcolorE">Online Form</a></th>
+      <th width="8%" id="eventsnav" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><a href="Events.html" id="changehyperlinkcolorF">Events</a></th>
+      <th width="8%" id="servicenav" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><a href="Service.html" id="changehyperlinkcolorD">Service</a></th>
+      <th width="6%" id="FAQnav" style="font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', 'DejaVu Sans', Verdana, sans-serif" scope="col"><a href="F&Q.html" id="changehyperlinkcolorG">FAQ</a></th>
+    </tr>
+  </tbody>
+</table>
+<object id="EdgeID" type="text/html" width="2020" height="520" data-dw-widget="Edge" data="animation_assets/Home Animated Cover/Assets/Fish Cover.html">
+</object>
+<p id="feecbackbuttom"><a href="OnlineFeedbackForm.html" id="changehyperlinkcolor"> FeedBack
+</a>
+<form action="" method="get">
+<p id="a"> Please fill this form before you order!
+<p id="h"> First Name: <input name="name" type="text" id="name" onblur="MM_validateForm('name','','R');return document.MM_returnValue" />
+       Last Name: <input name="name" type="text" id="name2" onblur="MM_validateForm('name','','R');return document.MM_returnValue" />
+<p id="b">E-mail Address: <br><input name="email" type="text" id="email" onblur="MM_validateForm('email','','RisEmail');return document.MM_returnValue" />
+<p id="c">Phone Number: <br><input name="number" type="text" id="number" onblur="MM_validateForm('number','','RisNum');return document.MM_returnValue" maxlength="8" /><br> 
+<p id="d">Address:<br><textarea name="address" type="text" id="address" cols="45" rows="5" onblur="MM_validateForm('address','','R');return document.MM_returnValue"></textarea>
+      </p>
+      <p id="e"> Method of Payment: 
+      <img src="Images/new image hansel/mastercard-logo.jpg" width="200" height="100" align="center"><input type="radio" name="choice" value="1" checked>
+      <img src="Images/new image hansel/visalogo-big.gif" width="200" height="100" align="center"> <input type="radio" name="choice" value="2">
+      Cash at Delivery <input type="radio" name="choice" value="3"></p>
+      <p id="f"> Credit Card Number:
+      <br><input name="number" type="text" id="number2" onblur="MM_validateForm('number','','RisNum');return document.MM_returnValue" maxlength="19" />
+      <p id="g">Card Verification Value: <br><input name="number" type="text" id="number3" onblur="MM_validateForm('number','','RisNum');return document.MM_returnValue" maxlength="3" /><br> 
+<div id="page-wrap" align="center">
+    	<table id="ordertable">
+    	    <tbody><tr>
+    	         <th>Product Name</th>
+    	         <th>Quantity</th>
+    	         <th>X</th>
+    	         <th>Unit Price</th>
+    	         <th>=</th>
+    	         <th style="text-align: right; padding-right: 30px;">Totals</th>
+    	    </tr>
+            <tr class="odd">
+                <td class="product-title prod-1" rel="prod-1">F1 - <em>Gold Fish</em></td>
+                <td class="num-pallets"><input type="number" class="num-pallets-input" id="gold-fish-num-pallets" ></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>20</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="gold-fish-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-2" rel="prod-2">F2 - <em>Siamese Fighting Fish</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="fighting-fish-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>25</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input class="row-total-input" id="fighting-fish-row-total" type="text" disabled="disabled"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-3" rel="prod-3">F3 - <em>Asian Arowana</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="asian-arowana-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>350</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="asian-arowana-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-4" rel="prod-4">F4 - <em>Queen Angelfish</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="queen-angelfish-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>75</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="queen-angelfish-row-total" type="text"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-5" rel="prod-5">T1 - <em>Aqua Plant Tank</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="aqua-plant-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>170</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="aqua-plant-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-6" rel="prod-6">T2 - <em>Forest Tank</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="forest-tank-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>250</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="forest-tank-row-total" type="text"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-7" rel="prod-7">T3 - <em>Nano Fish Tank</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="nano-fish-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>90</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="nano-fish-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-8" rel="prod-8">T4 - <em>Classic Fish Tank</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="classic-fish-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>650</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="classic-fish-row-total" type="text"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-9" rel="prod-9">D1 - <em>Sea Kingdom</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="sea-kingdom-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>250</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="sea-kingdom-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-10" rel="prod-10">D2 - <em>Fallen Mummy</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="fallen-mummy-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>100</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="fallen-mummy-row-total" type="text"></td>
+                <tr class="odd">
+                <td class="product-title prod-11" rel="prod-11">D3 - <em>Fallen Pirate Ship</em></td>
+                <td class="num-pallets"><input type="number" class="num-pallets-input" id="pirate-ship-num-pallets" ></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>170</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="pirate-ship-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-12" rel="prod-12">D4 - <em>Neon Lights</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="neon-lights-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>50</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input class="row-total-input" id="neon-lights-row-total" type="text" disabled="disabled"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-13" rel="prod-13">L1 - <em>Tetramin</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="tetramin-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>7.29</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="tetramin-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-14" rel="prod-14">L2 - <em>Omega One</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="onega-one-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>10.29</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="omega-one-row-total" type="text"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-15" rel="prod-15">L3 - <em>Omega One</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="omega-one-num-pallets2" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>11.39</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="omega-one-row-total2" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-16" rel="prod-16">L4 - <em>Tropical</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="tropical-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>2.59</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="tropical-row-total" type="text"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-17" rel="prod-17">M1 - <em>Tetra's LifeGuard</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="tetra-lifeguard-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>8.77</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="tetra-lifeguard-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-18" rel="prod-18">M2 - <em>Tetra's Parasite Guard</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="tetra-parasite-guard-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>6.52</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="tetra-parasite-guard-row-total" type="text"></td>
+            </tr>
+            <tr class="odd">
+                <td class="product-title prod-19" rel="prod-19">M3 - <em>Tetra's Fungus Guard</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="tetra-fungus-guard-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>6.92</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="tetra-fungus-guard-row-total" type="text"></td>
+            </tr>
+            <tr class="even">
+                <td class="product-title prod-20" rel="prod-20">M4 - <em>Tetra's Ick Guard</em></td>
+                <td class="num-pallets"><input class="num-pallets-input" id="tetra-ick-guard-num-pallets" type="number"></td>
+                <td class="times">X</td>
+                <td class="price-per-pallet">$<span>6.03</span></td>
+                <td class="equals">=</td>
+                <td class="row-total"><input disabled="disabled" class="row-total-input" id="tetra-ick-guard-row-total" type="text"></td>
+                </tr>
+                </table>
+           
+
+    	<div class="clear"></div>
+
+        <div style="text-align: right;">
+            <span>ORDER TOTAL: </span>
+            <input type="text" class="total-box" value="$0" id="order-total" disabled="disabled">
+
+
+            <form class="foxycart" action="" method="post" accept-charset="utf-8" id="foxycart-order-form">
+
+                <input type="hidden" name="name" value="Multi Product Order" />
+                <input type="hidden" id="fc-price" name="price" value="0"/>
+
+            </form>
+           <br><input type="submit" value="Submit Order" class="submit"/>
+        </div>
+
+    </div>
+
+<!-- InstanceEndEditable -->
+<table width="40%" border="0" id="footer">
+  <tbody>
+    <tr>
+      <td width="31%" height="189" style="text-align: center"><form id="form1" name="form1" method="post"><input type="search"> <br><br>
+Home<br>
+Product<br>
+Online Form<br>
+Events<br>
+Service<br>
+FAQ</td>
+      <td width="38%"><u>Find us On</u><br> Socialize  us on these following social medias. You can review our products and get the latest news of new products too. See our aquarium decorations and new tank designs.<br>
+ 
+<br>
+      <img src="Images/fb-art.jpg" width="50" height="50" alt=""/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="Images/twitter-logo.png" width="50" height="50" alt=""/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="Images/GooglePlus-Logo-02.png" width="50" height="50" alt=""/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<img src="Images/tumblr.png" width="50" height="50" alt=""/></td>
+      <td width="31%"><u>Contact Us</u><br>
+
+Address: 83 Punggol Central Waterway Point, Singapore 828761 #01-11 <br>
+Contact Number: +65 6383 0111 <br>
+Email: enquires@fishtastic.com <br>
+Email Response Time: 1 - 2 working days<br>
+Operating Hours: 10 am - 9pm </td>
+    </tr>
+  </tbody>
+</table>
+
+
+
+</body>
+<!-- InstanceEnd --></html>
